@@ -1,0 +1,13 @@
+# Normalizar line endings
+* text=auto eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.py text eol=lf
+
+# Binários
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pyc binary

@@ -1,0 +1,48 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyc
+.Python
+
+# Node
+node_modules/
+.npm
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temp e logs
+*.log
+*.tmp
+*.bak
+*.orig
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets / env
+.env
+.env.*
+*.pem
+*.key
+secrets/
+
+# Claude runtime (não versionar)
+projects/
+memory/
+statsig/
+todos/
+telemetry/
+shell-snapshots/
+tasks/
+
+# Arquivos temporários gerados pelo install
+settings.json.gusman
+hooks.json.gusman
+auto-update.sh
