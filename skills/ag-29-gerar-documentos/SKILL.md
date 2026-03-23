@@ -33,6 +33,44 @@ AGUARDAR aprovacao do usuario antes de prosseguir.
 
 ### FASE 2: Geracao
 
+#### PPTX — PT-BR Obrigatório (aplicar ANTES de qualquer outra coisa)
+
+**PT-BR é pré-condição, não opcional.** Toda apresentação gerada em Python deve:
+
+1. **`lang="pt-BR"` em todos os runs** — sem isso, acentos somem no export/impressão:
+```python
+def force_ptbr_on_all_runs(prs):
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if shape.has_text_frame:
+                for para in shape.text_frame.paragraphs:
+                    for run in para.runs:
+                        rPr = run._r.get_or_add_rPr()
+                        rPr.set('lang', 'pt-BR')
+                        rPr.set('altLang', 'en-US')
+# Chamar SEMPRE antes de prs.save()
+force_ptbr_on_all_runs(prs)
+```
+
+2. **Fonte com suporte PT-BR** — usar Calibri (1ª opção), Montserrat ou Open Sans.
+   NUNCA Times New Roman ou fontes sem glifos acentuados.
+
+3. **Strings Python em UTF-8 nativo** — Python 3 já é UTF-8. NUNCA re-encodar:
+```python
+# CORRETO
+titulo = "Análise Pedagógica — Gestão 2026"
+# ERRADO
+titulo = "An\u00e1lise".encode('latin-1')  # nunca
+```
+
+4. **Formatação numérica BR**:
+   - Moeda: `R$ 1.234,56` | Data: `15/03/2026` | Percentual: `12,5%`
+   - Ponto para milhar, vírgula para decimal (oposto ao padrão americano)
+
+5. **Acentos obrigatórios** — verificar: á é í ó ú ã õ â ê ô ç à (maiúsculas também)
+   - Rodar `check_accents(prs)` após gerar
+   - Rodar ag-31 spell check antes de entregar
+
 #### PPTX — Regras OOXML (14 regras criticas)
 
 1. **solidFill ANTES de latin/cs** — Ordem OOXML obrigatoria nos filhos de `<a:rPr>`. Inserir solidFill na posicao 0, NUNCA append.
@@ -183,11 +221,24 @@ Meta: >= 60% dos slides com pelo menos 1 componente composicional.
 
 ### FASE 3: Validacao
 
-1. **Spell Check (ag-31)**: `python3 .claude/scripts/spellcheck_document.py <file>` — corrige ortografia e acentuacao silenciosamente
-2. Rodar script de validacao: `python3 .claude/scripts/validate_office_file.py <file>`
-3. Verificar: zero ghost text, zero sobreposicao, zero fragmentacao
-4. Conferir contraste em todos os slides
-5. Conferir variety calendar (nunca 3x mesmo layout)
+1. **PT-BR final pass** — SEMPRE antes de salvar:
+   ```python
+   force_ptbr_on_all_runs(prs)   # lang="pt-BR" em todos os runs
+   check_accents(prs)             # verifica acentuação
+   prs.save('arquivo.pptx')
+   ```
+2. **Spell Check (ag-31)**: `python3 .claude/scripts/spellcheck_document.py <file>` — corrige ortografia e acentuacao
+3. Rodar script de validacao: `python3 .claude/scripts/validate_office_file.py <file>`
+4. Verificar: zero ghost text, zero sobreposicao, zero fragmentacao
+5. Conferir contraste em todos os slides
+6. Conferir variety calendar (nunca 3x mesmo layout)
+7. **Checklist PT-BR**:
+   - [ ] `lang="pt-BR"` aplicado (`force_ptbr_on_all_runs`)
+   - [ ] Datas no formato DD/MM/AAAA
+   - [ ] Moeda no formato R$ 1.234,56
+   - [ ] Fonte Calibri/Montserrat/Open Sans (não Arial sozinha)
+   - [ ] Acentos corretos em todos os slides
+   - [ ] ag-31 spell check executado
 
 ### FASE 4: Entrega
 

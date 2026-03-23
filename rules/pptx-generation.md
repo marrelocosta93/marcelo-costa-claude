@@ -15,7 +15,12 @@ etree.SubElement(rPr, solidFill)
 Background de slide deve ser inserido no elemento `cSld`, nao no `sld` raiz.
 
 ### 3. Fonte explicita em TODOS os runs
-Todo run de texto DEVE ter fonte Arial (ou a definida no design system) com `latin` E `cs`.
+Todo run de texto DEVE ter fonte com `latin` E `cs` explícitos.
+Fontes recomendadas para PT-BR (suporte completo a acentos):
+- **Calibri** (padrão corporativo brasileiro, excelente suporte PT-BR)
+- **Montserrat** (moderna, muito usada em apresentações profissionais BR)
+- **Open Sans** (leitura fácil, boa em projeções)
+- Arial como fallback apenas se necessário
 
 ### 4. Ghost text = " " (espaco), NUNCA string vazia
 Placeholders que devem ficar vazios: setar texto como `" "` (um espaco).
@@ -50,6 +55,62 @@ Cards: margin 12pt. Textboxes: min 0.5" das bordas do slide.
 
 ### 13. Diagnostico do template (para PPTX existente)
 Antes de editar, mapear TODOS os layouts e placeholders.
+
+### 14. lang="pt-BR" em TODOS os runs (CRÍTICO para acentos)
+Sem o atributo `lang`, o PowerPoint não sabe o idioma e pode corromper acentos.
+
+```python
+def force_ptbr_on_all_runs(prs):
+    """SEMPRE chamar antes de prs.save(). Garante PT-BR em toda a apresentação."""
+    from lxml import etree
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if shape.has_text_frame:
+                for para in shape.text_frame.paragraphs:
+                    for run in para.runs:
+                        rPr = run._r.get_or_add_rPr()
+                        rPr.set('lang', 'pt-BR')
+                        rPr.set('altLang', 'en-US')
+
+# Uso obrigatório antes de salvar:
+force_ptbr_on_all_runs(prs)
+prs.save('arquivo.pptx')
+```
+
+### 15. Fonte com suporte PT-BR completo
+Preferência de fontes (melhor suporte a acentos PT-BR):
+1. **Calibri** — padrão Microsoft, excelente PT-BR
+2. **Montserrat** — moderna, muito usada em corporativo BR
+3. **Open Sans** — leitura fácil em projeções
+4. Arial — fallback aceitável
+
+```python
+# Correto: sempre definir latin + cs com typeface explícito
+def set_run_font_ptbr(run, font_name='Calibri', size_pt=16):
+    from pptx.util import Pt
+    from lxml import etree
+    rPr = run._r.get_or_add_rPr()
+    rPr.set('lang', 'pt-BR')
+    rPr.set('altLang', 'en-US')
+    # latin (script latino — cobre PT-BR)
+    latin = etree.SubElement(rPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}latin')
+    latin.set('typeface', font_name)
+    # cs (complex script — fallback)
+    cs = etree.SubElement(rPr, '{http://schemas.openxmlformats.org/drawingml/2006/main}cs')
+    cs.set('typeface', font_name)
+    run.font.size = Pt(size_pt)
+```
+
+### 16. Formatação numérica PT-BR
+- Moeda: `R$ 1.234,56` (ponto milhar, vírgula decimal)
+- Data: `DD/MM/AAAA` (nunca MM/DD/YYYY)
+- Percentual: `12,5%` (vírgula decimal)
+
+```python
+def fmt_moeda(v): return f"R$ {v:,.2f}".replace(",","X").replace(".",",").replace("X",".")
+def fmt_data(dt): return dt.strftime("%d/%m/%Y")
+def fmt_pct(v):   return f"{v:.1f}%".replace(".", ",")
+```
 
 ## Library de Componentes
 
